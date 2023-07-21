@@ -17,11 +17,14 @@ require("./config")(app);
 
 // 👇 Start handling routes here
 
+const indexRoutes = require("./routes/index.routes");
+app.use("/api", indexRoutes);
+
 const authRouter = require("./routes/auth.routes");
 app.use("/auth", authRouter);
 
-const indexRoutes = require("./routes/index.routes");
-app.use("/api", indexRoutes);
+const flashCardRoutes = require("./routes/flashcard.routes");
+app.use("/api", flashCardRoutes);
 
 //Remember to us isAuthenticated on the routes that you will create
 // ❗ To handle errors. Routes that don't exist or errors that you handle in specific routes

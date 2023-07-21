@@ -8,11 +8,21 @@ const saltRounds = 10;
 const { isAuthenticated } = require("./../middleware/jwt.middleware");
 // POST /auth/signup  - Creates a new user in the database
 router.post("/signup", (req, res, next) => {
-  const { email, password, fullName } = req.body;
+  const { email, password, passwordRepeat, fullName } = req.body;
 
   // Check if the email or password or name is provided as an empty string
-  if (email === "" || password === "" || fullName === "") {
+  if (
+    email === "" ||
+    password === "" ||
+    fullName === "" ||
+    passwordRepeat === ""
+  ) {
     res.status(400).json({ message: "Provide email, password and name" });
+    return;
+  }
+
+  if (password !== passwordRepeat) {
+    res.status(400).json({ message: "Provide matching passwords" });
     return;
   }
 
