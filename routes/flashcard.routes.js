@@ -12,7 +12,9 @@ router.post("/flashcards", (req, res, next) => {
     .then((card) => {
       return User.findByIdAndUpdate(user._id, {
         $push: { flashCards: card._id }
-      }).then(() => res.redirect("/flashcards"));
+      }).then(() =>
+        res.status(200).json({ message: "Card created successfully" })
+      );
     })
     .catch((err) => res.status(500).json({ message: "Internal Server Error" }));
 });
@@ -25,39 +27,56 @@ router.get("/users/:userId/flashcards", (req, res) => {
   });
 });
 
+//Get one card from the users card list
+
+router.get("/users/:userId/flashcards/:cardId", async (req, res, next) => {
+  try {
+    const { userId, cardId } = req.params;
+    // const userID = req.user._id;
+    // if (userID !== req.user._id) {
+    //   return res.status(403).json({
+    //     error: "You do not have the permission to view this flashcard"
+    //   });
+    // }
+    const flashCard = await FlashCard.findOne({ _id: cardId, user: userId });
+
+    if (!flashCard) {
+      return res.status(404).json({ error: "Flashcard does not exist" });
+    }
+    res.status(200).json(flashCard);
+  } catch (error) {
+    console.error("Error getting the card:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
+
 //Edit a user's flashcard
 
 router.post(
-  ":/users/:userId/flashcards/:cardId/edit",
+  "/users/:userId/flashcards/:cardId/edit",
   async (req, res, next) => {
     try {
       const { userId, cardId } = req.params;
       const { word, meaning, partOfSpeech } = req.body;
 
-      // const userID = req.user._id;
-      // if(userID !== req.user._id){
-      //     return res.status(403).json({
-      //         error: "You do not have the permission to update this flashcard"
-      //     });
-      // }
+      // Find the flashcard by cardId and userId and update its properties
+      const updatedFlashcard = await FlashCard.findOneAndUpdate(
+        { _id: cardId, user: userId },
+        { word, meaning, partOfSpeech },
+        { new: true } // To return the updated flashcard after the update
+      );
 
-      const flashCard = await FlashCard.findOne({ _id: cardId, userId });
-
-      //Verify card's existence
-      if (!flashCard) {
-        return res.status(404).json({ error: "Flashcard does not exist" });
+      if (!updatedFlashcard) {
+        return res
+          .status(404)
+          .json({
+            error: "Flashcard not found or you don't have permission to edit it"
+          });
       }
 
-      //update the fields
-      flashCard.word = word;
-      flashCard.meaning = meaning;
-      flashCard.partOfSpeech = partOfSpeech;
-
-      //Save the card
-      const updatedCard = await flashCard.save();
-      res.status(200).json(updatedCard);
+      res.status(200).json(updatedFlashcard);
     } catch (error) {
-      console.error("Error updating the card:", error);
+      console.error("Error updating the flashcard:", error);
       res.status(500).json({ error: "Internal Server Error" });
     }
   }

@@ -26,6 +26,9 @@ app.use("/auth", authRouter);
 const flashCardRoutes = require("./routes/flashcard.routes");
 app.use("/api", flashCardRoutes);
 
+const profileRoutes = require("./routes/profile.routes");
+app.use("/api", profileRoutes);
+
 //Remember to us isAuthenticated on the routes that you will create
 // ❗ To handle errors. Routes that don't exist or errors that you handle in specific routes
 require("./error-handling")(app);

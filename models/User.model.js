@@ -3,7 +3,7 @@ const { Schema, model } = mongoose;
 
 const userSchema = new Schema({
   fullName: { type: String },
-  flashCards: [{ type: Schema.Types.ObjectId, ref: "FlashCards" }],
+  flashCards: [{ type: Schema.Types.ObjectId, ref: "FlashCard" }],
   email: { type: String, required: true, unique: true },
   password: { type: String, required: true }
 });
