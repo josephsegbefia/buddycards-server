@@ -5,7 +5,7 @@ const User = require("../models/User.model");
 router.post("/setup-profile/:userId", async (req, res) => {
   try {
     const { userId } = req.params;
-    const { location, bio, interests, fullName } = req.body;
+    const { location, bio, goal, fullName } = req.body;
 
     //Find the user by the ID
     const user = await User.findById(userId);
@@ -23,14 +23,14 @@ router.post("/setup-profile/:userId", async (req, res) => {
         user: userId,
         location,
         bio,
-        interests
+        goal
       });
     } else {
       //If the user already has a profile, update the existing profile
       profile.fullName = fullName;
       profile.location = location;
       profile.bio = bio;
-      profile.interests = interests;
+      profile.goal = goal;
       await profile.save();
     }
     res.status(200).json({ profile });
@@ -45,17 +45,17 @@ router.get("/profile/:userId", async (req, res, next) => {
     const { userId } = req.params;
     const profile = await Profile.findOne({ user: userId }).populate("user");
     const user = profile.user.fullName;
-    const interests = profile.interests;
+    const goal = profile.goal;
     const bio = profile.bio;
     const avatar = profile.avatarurl;
     const location = profile.location;
 
     res.json({
       user: user,
-      interests: interests,
       bio: bio,
       avatar: avatar,
-      location: location
+      location: location,
+      goal: goal
     });
   } catch (error) {
     console.log(error);
