@@ -1,19 +1,29 @@
 const router = require("express").Router();
 const nlp = require("de-compromise");
+const translate = require("translate-google");
 
 const FlashCard = require("../models/FlashCard.model");
 const User = require("../models/User.model");
 
 //POST /api/flashcards  - create a new card
 router.post("/flashcards", (req, res, next) => {
-  const { user, word, partOfSpeech, meaning } = req.body;
+  const { user, word, partOfSpeech, meaning, translation, conjugations } =
+    req.body;
 
-  FlashCard.create({ user, word, partOfSpeech, meaning })
+  FlashCard.create({
+    user,
+    word,
+    partOfSpeech,
+    translation,
+    conjugations
+  })
     .then((card) => {
       return User.findByIdAndUpdate(user._id, {
         $push: { flashCards: card._id }
       }).then(() =>
-        res.status(200).json({ message: "Card created successfully" })
+        res
+          .status(200)
+          .json({ message: "Card created successfully", user: user._id })
       );
     })
     .catch((err) => res.status(500).json({ message: "Internal Server Error" }));
@@ -67,11 +77,9 @@ router.post(
       );
 
       if (!updatedFlashcard) {
-        return res
-          .status(404)
-          .json({
-            error: "Flashcard not found or you don't have permission to edit it"
-          });
+        return res.status(404).json({
+          error: "Flashcard not found or you don't have permission to edit it"
+        });
       }
 
       res.status(200).json(updatedFlashcard);
@@ -111,24 +119,29 @@ router.post(
 );
 
 // get POS of the words
-router.post("/pos-tagging", async (req, res, next) => {
+router.post("/word-manipulation", async (req, res, next) => {
   const { word } = req.body;
 
   try {
     if (!word) {
       res.status(400).json({ error: "Word parameter is required" });
-
       return;
     }
     //Perform German POS tagging on the word
     // const processedWord = nlp(word).normalize();
     // const taggedTokens = processedWord.out("tags");
-    const doc = nlp(word);
+    const doc = await nlp(word);
+    const conjugations = await doc.verbs().conjugate();
     const docJson = doc.json();
-    //[0].terms[0].tags;
 
-    //JSON Output
-    res.send(docJson);
+    //[0].terms[0].tags;
+    const translation = await translate(word, { to: "en" });
+
+    res.json({
+      pos: docJson,
+      translatedWord: translation,
+      conjugations: conjugations
+    });
   } catch (error) {
     console.log("We could not provide part of speech:", error);
     res.status(400).json({ error: "POS tagging unsuccesful" });
