@@ -7,8 +7,7 @@ const User = require("../models/User.model");
 
 //POST /api/flashcards  - create a new card
 router.post("/flashcards", (req, res, next) => {
-  const { user, word, partOfSpeech, meaning, translation, conjugations } =
-    req.body;
+  const { user, word, partOfSpeech, translation, conjugations } = req.body;
 
   FlashCard.create({
     user,
@@ -32,9 +31,16 @@ router.post("/flashcards", (req, res, next) => {
 // GET a user's flashcard collections
 router.get("/users/:userId/flashcards", (req, res) => {
   const { userId } = req.params;
-  FlashCard.find({ userId }).then((cards) => {
-    res.status(200).json(cards);
-  });
+  let { offset = 0, limit = 0 } = req.query;
+  offset = Number(offset);
+  limit = Number(limit);
+
+  FlashCard.find({ user: userId })
+    .skip(offset)
+    .limit(limit)
+    .then((cards) => {
+      res.status(200).json(cards);
+    });
 });
 
 //Get one card from the users card list
@@ -42,6 +48,7 @@ router.get("/users/:userId/flashcards", (req, res) => {
 router.get("/users/:userId/flashcards/:cardId", async (req, res, next) => {
   try {
     const { userId, cardId } = req.params;
+
     // const userID = req.user._id;
     // if (userID !== req.user._id) {
     //   return res.status(403).json({
@@ -53,7 +60,13 @@ router.get("/users/:userId/flashcards/:cardId", async (req, res, next) => {
     if (!flashCard) {
       return res.status(404).json({ error: "Flashcard does not exist" });
     }
-    res.status(200).json(flashCard);
+    // res.status(200).json(flashCard);
+    res.status(200).json({
+      word: flashCard.word,
+      pos: flashCard.partOfSpeech,
+      translation: flashCard.translation,
+      conjugations: flashCard.conjugations
+    });
   } catch (error) {
     console.error("Error getting the card:", error);
     res.status(500).json({ error: "Internal Server Error" });
@@ -67,13 +80,13 @@ router.post(
   async (req, res, next) => {
     try {
       const { userId, cardId } = req.params;
-      const { word, meaning, partOfSpeech } = req.body;
+      const { word, conjugations, translation, partOfSpeech } = req.body;
 
       // Find the flashcard by cardId and userId and update its properties
       const updatedFlashcard = await FlashCard.findOneAndUpdate(
         { _id: cardId, user: userId },
-        { word, meaning, partOfSpeech },
-        { new: true } // To return the updated flashcard after the update
+        { word, conjugations, translation, partOfSpeech },
+        { new: true }
       );
 
       if (!updatedFlashcard) {
