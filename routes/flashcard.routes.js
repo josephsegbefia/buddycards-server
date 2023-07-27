@@ -131,6 +131,18 @@ router.post(
   }
 );
 
+// router.delete("/flashcards/:cardId/delete", (req, res) => {
+//   const { cardId } = req.params;
+
+//   FlashCard.findByIdAndRemove(cardId)
+//     .then(() =>
+//       res.json({
+//         message: `Card with Id of ${cardId} is removed successfully`
+//       })
+//     )
+//     .catch((error) => res.json(error));
+// });
+
 // get POS of the words
 router.post("/word-manipulation", async (req, res, next) => {
   const { word } = req.body;

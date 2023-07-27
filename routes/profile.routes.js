@@ -1,11 +1,20 @@
 const router = require("express").Router();
 const Profile = require("../models/Profile.model");
 const User = require("../models/User.model");
+const fileUploader = require("../config/cloudinary.config");
+
+router.post("/upload", fileUploader.single("avatarurl"), (req, res, next) => {
+  if (!req.file) {
+    next(new Error("No file uploaded"));
+    return;
+  }
+  res.json({ fileUrl: req.file.path });
+});
 
 router.post("/setup-profile/:userId", async (req, res) => {
   try {
     const { userId } = req.params;
-    const { location, bio, goal, fullName } = req.body;
+    const { location, bio, goal, fullName, avatarurl } = req.body;
 
     //Find the user by the ID
     const user = await User.findById(userId);
@@ -23,7 +32,8 @@ router.post("/setup-profile/:userId", async (req, res) => {
         user: userId,
         location,
         bio,
-        goal
+        goal,
+        avatarurl
       });
     } else {
       //If the user already has a profile, update the existing profile
@@ -31,6 +41,7 @@ router.post("/setup-profile/:userId", async (req, res) => {
       profile.location = location;
       profile.bio = bio;
       profile.goal = goal;
+      profile.avatarurl = avatarurl;
       await profile.save();
     }
     res.status(200).json({ profile });

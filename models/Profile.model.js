@@ -7,9 +7,12 @@ const profileSchema = new Schema(
     user: { type: Schema.Types.ObjectId, ref: "User" },
     location: { type: String },
     bio: { type: String },
-    avatarurl: { type: String },
-    goal: { type: String },
-    flashCards: { type: Number }
+    avatarurl: {
+      type: String,
+      default: "https://images.app.goo.gl/TbnvJZESaDxBKJtEA"
+    },
+    goal: { type: String }
+    // flashCards: { type: Number }
   },
   {
     timestamps: true
